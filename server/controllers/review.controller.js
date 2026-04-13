@@ -37,7 +37,9 @@ const generateReview = async (req, res) => {
       user.lastReviewDate = new Date();
     }
 
-    if (user.dailyReviewCount >= 5) {
+    const isDeveloper = user.email === (process.env.ADMIN_EMAIL || 'lalitmehta778@gmail.com');
+
+    if (user.dailyReviewCount >= 5 && !isDeveloper) {
       return res.status(429).json({ success: false, message: "Daily limit of 5 reviews reached. Please come back tomorrow!" });
     }
 
@@ -74,7 +76,7 @@ IMPORTANT: Format your response clearly using Markdown. Wrap code in language-sp
     res.json({
       success: true,
       data: aiResponseText,
-      remaining: 5 - user.dailyReviewCount
+      remaining: isDeveloper ? "Unlimited" : Math.max(0, 5 - user.dailyReviewCount)
     });
 
   } catch (error) {
