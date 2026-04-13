@@ -3,7 +3,7 @@ import axios from "axios";
 import Markdown from "react-markdown";
 import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/atom-one-dark.css";
-import { Code2, Sparkles, Loader2, Bot, Copy, Check, ChevronDown, Download } from "lucide-react";
+import { Code2, Sparkles, Loader2, Bot, Copy, Check, ChevronDown, Download, Wand2 } from "lucide-react";
 import Editor from "@monaco-editor/react";
 import * as htmlToImage from "html-to-image";
 import { jsPDF } from "jspdf";
@@ -18,6 +18,25 @@ export default function Dashboard() {
   const [errorMsg, setErrorMsg] = useState("");
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const reportRef = useRef(null);
+
+  const loadDemoCode = () => {
+    setCode(`function calculateTotal(items) {
+  let total = 0;
+  for (let i = 0; i <= items.length; i++) { // Bug: i <= items.length
+    total += items[i].price; // Will throw error when i == items.length
+  }
+  return total;
+}
+
+const shoppingCart = [
+  { name: 'Apple', price: 1.5 },
+  { name: 'Banana', price: 2.0 },
+  { name: 'Orange', price: 1.2 }
+];
+
+console.log(calculateTotal(shoppingCart));`);
+    setLanguage("javascript");
+  };
 
   const copyCode = () => {
     navigator.clipboard.writeText(code);
@@ -144,6 +163,14 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+            <button
+              onClick={loadDemoCode}
+              title="Load Demo Code"
+              className="text-xs text-indigo-300 hover:text-white transition-colors flex items-center gap-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 px-2 sm:px-2.5 py-1.5 rounded-md border border-indigo-500/30"
+            >
+              <Wand2 className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline whitespace-nowrap">Demo Code</span>
+            </button>
             <button
               onClick={copyCode}
               title="Copy Code"
