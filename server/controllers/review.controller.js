@@ -37,7 +37,7 @@ const generateReview = async (req, res) => {
       user.lastReviewDate = new Date();
     }
 
-    const isDeveloper = user.email === (process.env.ADMIN_EMAIL || 'lalitmehta778@gmail.com');
+    const isDeveloper = user.email === (process.env.ADMIN_EMAIL);
 
     if (user.dailyReviewCount >= 5 && !isDeveloper) {
       return res.status(429).json({ success: false, message: "Daily limit of 5 reviews reached. Please come back tomorrow!" });
