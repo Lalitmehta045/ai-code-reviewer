@@ -8,7 +8,16 @@ const reviewRoutes = require("./routes/review.routes");
 const app = express();
 
 // Global Middleware
-app.use(cors());
+app.use(cors({
+  origin: [
+    "https://ai-code-analyzer-tool.vercel.app",
+    "http://localhost:5173",
+    "http://localhost:3000"
+  ],
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
 app.use(express.json());
 
 // Mount Routes
