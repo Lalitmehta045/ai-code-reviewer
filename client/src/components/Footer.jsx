@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Bot, Terminal, MessageCircle, Globe } from "lucide-react";
+import { Bot, Terminal, MessageCircle, Globe, GitBranch, ExternalLink } from "lucide-react";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -78,9 +78,15 @@ export default function Footer() {
           <p className="text-slate-500 text-sm">
             &copy; {currentYear} AI Code Reviewer. All rights reserved.
           </p>
-          <div className="flex items-center gap-2 text-sm text-slate-500">
-            <span>Built with <span className="text-rose-500">❤️</span> for developers</span>
-          </div>
+          <a href="https://github.com/Lalitmehta045" target="_blank" rel="noreferrer" className="group flex items-center gap-3 px-4 py-2 rounded-full bg-slate-900/60 border border-slate-800 hover:border-indigo-500/40 transition-all duration-300">
+            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center text-white text-xs font-bold">L</div>
+            <div className="flex flex-col">
+              <span className="text-white text-sm font-medium leading-tight">Lalit Mehta</span>
+              <span className="text-slate-500 text-[11px] leading-tight">Full Stack Developer</span>
+            </div>
+            <GitBranch className="w-4 h-4 text-slate-500 group-hover:text-indigo-400 transition-colors ml-1" />
+            <ExternalLink className="w-3 h-3 text-slate-600 group-hover:text-indigo-400 transition-colors" />
+          </a>
         </div>
       </div>
     </footer>
