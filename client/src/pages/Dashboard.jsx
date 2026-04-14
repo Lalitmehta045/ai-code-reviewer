@@ -119,11 +119,14 @@ console.log(calculateTotal(shoppingCart));`);
       });
 
       setResult(res.data.data);
+      setErrorMsg("");
     } catch (error) {
+      console.error("Review error:", error);
+      setResult("");
       if (error.response?.status === 429) {
         setErrorMsg("Daily limit of 5 reviews reached. Please come back tomorrow!");
       } else {
-        setErrorMsg("Error reviewing code. Please try again.");
+        setErrorMsg(error.response?.data?.message || "Error reviewing code. Please try again.");
       }
     } finally {
       setLoading(false);
@@ -131,7 +134,7 @@ console.log(calculateTotal(shoppingCart));`);
   };
 
   return (
-    <div className="flex-1 p-4 md:p-8 grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-[1800px] w-full mx-auto">
+    <div className="flex-1 p-3 sm:p-4 md:p-8 grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 max-w-[1800px] w-full mx-auto">
       {/* Left Panel - Editor */}
       <div className="flex flex-col rounded-3xl bg-slate-900/50 border border-slate-800 shadow-2xl backdrop-blur-sm overflow-hidden flex-1 group focus-within:ring-1 focus-within:ring-indigo-500/50 transition-all duration-300">
         <div className="px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between border-b border-slate-800 bg-slate-900/80 overflow-x-auto gap-2">
@@ -187,7 +190,7 @@ console.log(calculateTotal(shoppingCart));`);
           </div>
         </div>
 
-        <div className="flex-1 relative min-h-[400px]">
+        <div className="flex-1 relative min-h-[250px] sm:min-h-[400px]">
           <Editor
             height="100%"
             language={language}
@@ -241,7 +244,7 @@ console.log(calculateTotal(shoppingCart));`);
       </div>
 
       {/* Right Panel - Result */}
-      <div className="flex flex-col rounded-3xl bg-[#0B1120] border border-slate-800 shadow-2xl backdrop-blur-sm overflow-hidden flex-1 relative min-h-[500px]">
+      <div className="flex flex-col rounded-2xl sm:rounded-3xl bg-[#0B1120] border border-slate-800 shadow-2xl backdrop-blur-sm overflow-hidden flex-1 relative min-h-[300px] sm:min-h-[500px]">
         <div className="px-4 sm:px-6 py-4 flex items-center justify-between border-b border-slate-800 bg-slate-900/80 sticky top-0 z-10 shadow-sm gap-2">
           <div className="flex items-center gap-2 text-sm font-semibold text-slate-300">
             <Bot className="w-4 h-4 text-indigo-400" />
@@ -281,11 +284,11 @@ console.log(calculateTotal(shoppingCart));`);
           </div>
         </div>
 
-        <div className="p-6 overflow-y-auto flex-1 prose prose-invert prose-indigo max-w-none text-slate-300 prose-pre:bg-[#0E1526] prose-pre:border prose-pre:border-slate-800 prose-pre:shadow-xl relative">
+        <div className="p-4 sm:p-6 overflow-y-auto flex-1 prose prose-invert prose-indigo max-w-none text-slate-300 prose-pre:bg-[#0E1526] prose-pre:border prose-pre:border-slate-800 prose-pre:shadow-xl relative">
           
           {errorMsg && (
-            <div className="absolute top-4 left-6 right-6 bg-rose-500/10 border border-rose-500/30 text-rose-400 px-4 py-3 rounded-xl shadow-lg z-20 flex items-center gap-3">
-               <span className="font-bold flex-1">{errorMsg}</span>
+            <div className="bg-rose-500/10 border border-rose-500/30 text-rose-400 px-3 sm:px-4 py-3 rounded-xl shadow-lg z-20 flex items-center gap-3 mb-4">
+               <span className="font-bold flex-1 text-sm sm:text-base">{errorMsg}</span>
             </div>
           )}
 
@@ -349,8 +352,8 @@ console.log(calculateTotal(shoppingCart));`);
                   <Sparkles className="w-10 h-10 text-cyan-500/50" />
                 </div>
               </div>
-              <p className="text-center max-w-sm mt-4 text-slate-500 text-lg">
-                Enter your code in the left panel and click{" "}
+              <p className="text-center max-w-sm mt-4 text-slate-500 text-sm sm:text-lg px-2">
+                Enter your code and click{" "}
                 <span className="text-indigo-400 font-medium">
                   Review Code
                 </span>{" "}
