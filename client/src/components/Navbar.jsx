@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Bot, LogOut, History, Code2 } from "lucide-react";
+import { Bot, LogOut, History, Code2, FolderTree } from "lucide-react";
 import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 
@@ -28,6 +28,9 @@ export default function Navbar() {
             <span className="text-slate-400 mr-2 hidden md:inline">Welcome, <span className="text-white">{user.name}</span></span>
             <Link to="/dashboard" className="text-slate-300 hover:text-white transition flex items-center gap-2" title="Dashboard">
               <Code2 className="w-4 h-4 text-cyan-400" /> <span className="hidden sm:inline">Dashboard</span>
+            </Link>
+            <Link to="/project-analyzer" className="text-slate-300 hover:text-white transition flex items-center gap-2" title="Project Analyzer">
+              <FolderTree className="w-4 h-4 text-violet-400" /> <span className="hidden sm:inline">Analyzer</span>
             </Link>
             <Link to="/history" className="text-slate-300 hover:text-white transition flex items-center gap-2" title="History">
               <History className="w-4 h-4 text-emerald-400" /> <span className="hidden sm:inline">History</span>

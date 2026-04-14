@@ -7,6 +7,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import History from "./pages/History";
 import Home from "./pages/Home";
+import ProjectAnalyzer from "./pages/ProjectAnalyzer";
 import Footer from "./components/Footer";
 
 function App() {
@@ -32,6 +33,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <History />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/project-analyzer" 
+              element={
+                <ProtectedRoute>
+                  <ProjectAnalyzer />
                 </ProtectedRoute>
               } 
             />
