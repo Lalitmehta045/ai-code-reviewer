@@ -151,13 +151,13 @@ ai-code-reviewer/
 
 ## 🔗 API Endpoints
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| `POST` | `/api/auth/signup` | ❌ | Register new user |
-| `POST` | `/api/auth/login` | ❌ | Login & get JWT token |
-| `GET` | `/api/reviews` | ✅ | Get user's review history |
-| `POST` | `/api/reviews` | ✅ | Submit code for AI review |
-| `POST` | `/api/project/analyze` | ✅ | Upload ZIP for project analysis |
+| Method | Endpoint | Protected | Description |
+|--------|----------|-----------|-------------|
+| `POST` | `/api/auth/signup` | Public | Register new user |
+| `POST` | `/api/auth/login` | Public | Login & get JWT token |
+| `GET` | `/api/reviews` | JWT Required | Get user's review history |
+| `POST` | `/api/reviews` | JWT Required | Submit code for AI review |
+| `POST` | `/api/project/analyze` | JWT Required | Upload ZIP for project analysis |
 
 ---
 
