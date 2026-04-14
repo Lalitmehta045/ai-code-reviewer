@@ -23,6 +23,14 @@ const userSchema = new mongoose.Schema({
   lastReviewDate: {
     type: Date,
     default: Date.now
+  },
+  dailyAnalyzeCount: {
+    type: Number,
+    default: 0
+  },
+  lastAnalyzeDate: {
+    type: Date,
+    default: Date.now
   }
 }, { timestamps: true });
 

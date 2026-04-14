@@ -2,6 +2,7 @@ const { GoogleGenAI } = require("@google/genai");
 const AdmZip = require("adm-zip");
 const path = require("path");
 const fs = require("fs");
+const User = require("../models/user.model");
 
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY
@@ -88,6 +89,23 @@ const analyzeProject = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, message: "Please upload a ZIP file" });
+    }
+
+    // Rate limiting with admin bypass
+    const userId = req.user.id;
+    const user = await User.findById(userId);
+    const isDeveloper = user.email === process.env.ADMIN_EMAIL;
+
+    const today = new Date().toDateString();
+    const lastAnalyzeDate = user.lastAnalyzeDate ? new Date(user.lastAnalyzeDate).toDateString() : null;
+
+    if (today !== lastAnalyzeDate) {
+      user.dailyAnalyzeCount = 0;
+      user.lastAnalyzeDate = new Date();
+    }
+
+    if (user.dailyAnalyzeCount >= 3 && !isDeveloper) {
+      return res.status(429).json({ success: false, message: "Daily limit of 3 project analyses reached. Please come back tomorrow!" });
     }
 
     const files = extractAndReadFiles(req.file.buffer);
@@ -326,17 +344,29 @@ FORMAT RULES:
 
     const aiResponseText = response.text;
 
+    // Update usage count
+    user.dailyAnalyzeCount += 1;
+    await user.save();
+
     res.json({
       success: true,
       data: aiResponseText,
       fileCount: files.length,
-      fileTree: fileTree
+      fileTree: fileTree,
+      remaining: isDeveloper ? "Unlimited" : Math.max(0, 3 - user.dailyAnalyzeCount)
     });
 
   } catch (error) {
     console.error("Project Analysis Error:", error);
 
-    // Clean up uploaded file on error
+    // Handle Gemini API quota error
+    if (error?.status === 429 || error?.message?.includes("429") || error?.message?.includes("quota") || error?.message?.includes("RESOURCE_EXHAUSTED")) {
+      return res.status(429).json({
+        success: false,
+        message: "AI API quota exceeded. Please wait a few minutes and try again, or try with a smaller project."
+      });
+    }
+
     res.status(500).json({
       success: false,
       message: error.message || "Error analyzing project. Please try again."
