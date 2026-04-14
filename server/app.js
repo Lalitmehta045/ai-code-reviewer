@@ -12,6 +12,8 @@ const app = express();
 app.use(cors({
   origin: [
     "https://ai-code-analyzer-tool.vercel.app",
+    "https://codeanalyzer.cloud",
+    "https://www.codeanalyzer.cloud",
     "http://localhost:5173",
     "http://localhost:3000"
   ],
