@@ -70,11 +70,33 @@ const loginUser = async (req, res) => {
       // If redis unavailable, continue normally
     }
 
-    // Only select fields we need; include password explicitly since it's select:false in schema; use lean for perf
-    const user = await User.findOne({ email })
-      .select("+password name email")
-      .lean()
-      .exec();
+    // Try positive cache for user lookup to avoid DB hit on repeat logins
+    const userCacheTtl = parseInt(process.env.LOGIN_CACHE_TTL_SEC || "120", 10);
+    const userCacheKey = `user:email:${email}`;
+    let user = null;
+    try {
+      const cached = await redis.get(userCacheKey);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed && parsed._id && parsed.password) {
+          user = parsed;
+        }
+      }
+    } catch (_) { /* ignore cache parse errors */ }
+
+    // Fallback to DB if cache miss
+    if (!user) {
+      user = await User.findOne({ email })
+        .select("+password name email")
+        .lean()
+        .exec();
+      if (user) {
+        try {
+          const toCache = JSON.stringify({ _id: String(user._id), name: user.name, email: user.email, password: user.password });
+          await redis.setEx(userCacheKey, userCacheTtl, toCache);
+        } catch (_) { /* ignore cache set errors */ }
+      }
+    }
     if (!user) {
       // Set short-lived negative cache to reduce repeated lookups
       try { await redis.setEx(nxKey, nxTtl, "1", { nx: true }); } catch (e) {}

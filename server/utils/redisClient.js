@@ -31,20 +31,20 @@ async function init() {
     client = cfg.url
       ? new Redis(cfg.url, { ...common, tls: cfg.isTls ? {} : undefined })
       : new Redis({
-          host: cfg.host,
-          port: cfg.port,
-          username: cfg.username,
-          password: cfg.password,
-          tls: cfg.isTls ? {} : undefined,
-          ...common
-        });
+        host: cfg.host,
+        port: cfg.port,
+        username: cfg.username,
+        password: cfg.password,
+        tls: cfg.isTls ? {} : undefined,
+        ...common
+      });
     mode = "ioredis";
     client.on("connect", () => console.info("[Redis] ioredis connect"));
     client.on("ready", () => console.info("[Redis] ioredis ready"));
     client.on("reconnecting", () => console.warn("[Redis] ioredis reconnecting"));
     client.on("end", () => console.warn("[Redis] ioredis end"));
     client.on("error", (e) => console.warn("[Redis] ioredis error:", e && e.message ? e.message : e));
-    try { await client.ping(); } catch (_) {}
+    try { await client.ping(); } catch (_) { }
     return;
   } catch (e) {
     // fallthrough to node-redis
@@ -65,7 +65,7 @@ async function init() {
     await client.connect();
     mode = "node-redis";
     // Warmup ping
-    try { await client.ping(); } catch (_) {}
+    try { await client.ping(); } catch (_) { }
     return;
   } catch (e) {
     console.warn("[Redis] No redis client installed. Falling back to in-memory store (dev only).", e && e.message ? e.message : e);

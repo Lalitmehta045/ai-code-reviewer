@@ -46,7 +46,8 @@ const userSchema = new mongoose.Schema({
 // Hash password before saving
 userSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
-  const rounds = parseInt(process.env.BCRYPT_SALT_ROUNDS || "10", 10);
+  const raw = parseInt(process.env.BCRYPT_SALT_ROUNDS || "10", 10);
+  const rounds = Math.min(12, Math.max(10, Number.isFinite(raw) ? raw : 10));
   const salt = await bcrypt.genSalt(rounds);
   this.password = await bcrypt.hash(this.password, salt);
 });
