@@ -2,13 +2,17 @@ const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const redis = require("./utils/redisClient");
+const http = require("http");
+const https = require("https");
+const app = express();
 
 // Import Routes
 const authRoutes = require("./routes/auth.routes");
 const reviewRoutes = require("./routes/review.routes");
 const projectRoutes = require("./routes/project.routes");
 
-const app = express();
+// Passport.js
+const passport = require("./config/passport");
 
 // Global Middleware
 const corsOptions = {
@@ -17,7 +21,8 @@ const corsOptions = {
     "https://codeanalyzer.cloud",
     "https://www.codeanalyzer.cloud",
     "http://localhost:5173",
-    "http://localhost:3000"
+    "http://localhost:3000",
+    "http://localhost:3001"
   ],
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
@@ -28,6 +33,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.disable("x-powered-by");
 app.use(express.json());
+app.use(passport.initialize());
 
 // Health check endpoint for readiness/liveness and to enable warm-up probes
 app.get("/health", async (req, res) => {
@@ -42,6 +48,9 @@ app.get("/health", async (req, res) => {
     services: { mongo: mongoStatus, redis: redisOk ? "up" : "down" }
   });
 });
+
+// Minimal health route for external warmers (e.g., Render)
+app.get("/api/health", (req, res) => res.status(200).send("OK"));
 
 // Mount Routes
 app.use("/api/auth", authRoutes);
@@ -58,7 +67,23 @@ try {
         await mongoose.connection.db.admin().command({ ping: 1 });
       }
     } catch (_) {}
+    // Ping our own health endpoint to keep the dyno warm
+    try {
+      const base = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 5000}`;
+      const healthUrl = `${base.replace(/\/$/, "")}/api/health`;
+      const client = healthUrl.startsWith("https") ? https : http;
+      const req = client.get(healthUrl, (res) => res.resume());
+      req.on("error", () => {});
+    } catch (_) {}
   }, Math.max(60, WARMUP_INTERVAL_SEC) * 1000);
+  // Immediate warm-up ping on boot
+  try {
+    const base = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 5000}`;
+    const healthUrl = `${base.replace(/\/$/, "")}/api/health`;
+    const client = healthUrl.startsWith("https") ? https : http;
+    const req = client.get(healthUrl, (res) => res.resume());
+    req.on("error", () => {});
+  } catch (_) {}
 } catch (_) {}
 
 // Export Express App

@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import axios from "axios";
 import { Bot, Mail, Lock, User as UserIcon, Loader2 } from "lucide-react";
+import GoogleOAuthButton from "../components/GoogleOAuthButton";
 
 export default function Signup() {
   const [name, setName] = useState("");
@@ -19,7 +20,7 @@ export default function Signup() {
     setError("");
     setLoading(true);
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_URL}/auth/register`, { name, email, password });
+      const res = await axios.post(`/auth/register`, { name, email, password });
       login(res.data);
       navigate("/dashboard");
     } catch (err) {
@@ -75,6 +76,14 @@ export default function Signup() {
             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Sign Up"}
           </button>
         </form>
+
+        <div className="my-6 flex items-center gap-3">
+          <div className="h-px flex-1 bg-slate-800" />
+          <span className="text-xs uppercase tracking-wider text-slate-500">or</span>
+          <div className="h-px flex-1 bg-slate-800" />
+        </div>
+
+        <GoogleOAuthButton disabled={loading} label="Sign up with Google" />
 
         <p className="text-center text-sm text-slate-400 mt-8">
           Already have an account? <Link to="/login" className="text-indigo-400 hover:text-indigo-300 font-medium">Sign in</Link>

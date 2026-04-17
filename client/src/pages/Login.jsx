@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import axios from "axios";
 import { Bot, Mail, Lock, Loader2 } from "lucide-react";
+import GoogleOAuthButton from "../components/GoogleOAuthButton";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -66,6 +67,14 @@ export default function Login() {
             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Sign In"}
           </button>
         </form>
+
+        <div className="my-6 flex items-center gap-3">
+          <div className="h-px flex-1 bg-slate-800" />
+          <span className="text-xs uppercase tracking-wider text-slate-500">or</span>
+          <div className="h-px flex-1 bg-slate-800" />
+        </div>
+
+        <GoogleOAuthButton disabled={loading} label="Continue with Google" />
 
         <p className="text-center text-sm text-slate-400 mt-8">
           Don't have an account? <Link to="/signup" className="text-indigo-400 hover:text-indigo-300 font-medium">Sign up</Link>

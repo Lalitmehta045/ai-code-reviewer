@@ -20,9 +20,21 @@ const userSchema = new mongoose.Schema({
     lowercase: true,
     trim: true
   },
+  googleId: {
+    type: String,
+    unique: true,
+    sparse: true
+  },
+  authProvider: {
+    type: String,
+    enum: ["local", "google"],
+    default: "local"
+  },
   password: {
     type: String,
-    required: true,
+    required: function requiredPassword() {
+      return this.authProvider !== "google";
+    },
     select: false
   },
   dailyReviewCount: {
@@ -45,7 +57,7 @@ const userSchema = new mongoose.Schema({
 
 // Hash password before saving
 userSchema.pre("save", async function () {
-  if (!this.isModified("password")) return;
+  if (!this.password || !this.isModified("password")) return;
   const raw = parseInt(process.env.BCRYPT_SALT_ROUNDS || "10", 10);
   const rounds = Math.min(12, Math.max(10, Number.isFinite(raw) ? raw : 10));
   const salt = await bcrypt.genSalt(rounds);
