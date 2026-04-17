@@ -18,7 +18,7 @@ export default function Login() {
     setError("");
     setLoading(true);
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_URL}/auth/login`, { email, password });
+      const res = await axios.post(`/auth/login`, { email: email.trim().toLowerCase(), password });
       login(res.data);
       navigate("/dashboard");
     } catch (err) {

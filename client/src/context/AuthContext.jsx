@@ -4,6 +4,11 @@ import axios from "axios";
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
+  // Configure axios once for the app
+  axios.defaults.baseURL = import.meta.env.VITE_API_URL;
+  axios.defaults.timeout = parseInt(import.meta.env.VITE_API_TIMEOUT || "10000", 10);
+  axios.defaults.withCredentials = false;
+
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem("authToken") || null);
   const [loading, setLoading] = useState(true);
