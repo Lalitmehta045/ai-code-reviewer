@@ -1,5 +1,10 @@
 const mongoose = require("mongoose");
-const bcrypt = require("bcryptjs");
+let bcrypt;
+try {
+  bcrypt = require("bcrypt");
+} catch (e) {
+  bcrypt = require("bcryptjs");
+}
 const jwt = require("jsonwebtoken");
 
 const userSchema = new mongoose.Schema({
@@ -10,11 +15,15 @@ const userSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
+    index: true,
+    lowercase: true,
+    trim: true
   },
   password: {
     type: String,
-    required: true
+    required: true,
+    select: false
   },
   dailyReviewCount: {
     type: Number,
@@ -35,9 +44,10 @@ const userSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Hash password before saving
-userSchema.pre("save", async function() {
+userSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
-  const salt = await bcrypt.genSalt(10);
+  const rounds = parseInt(process.env.BCRYPT_SALT_ROUNDS || "10", 10);
+  const salt = await bcrypt.genSalt(rounds);
   this.password = await bcrypt.hash(this.password, salt);
 });
 
