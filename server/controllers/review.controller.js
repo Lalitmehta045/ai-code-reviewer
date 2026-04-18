@@ -65,7 +65,7 @@ const getUserHistory = async (req, res) => {
   try {
     // Select only fields needed by the UI — smaller payload, faster query
     const reviews = await Review.find({ userId: req.user.id })
-      .select("language aiResponse createdAt")
+      .select("code language aiResponse createdAt")
       .sort({ createdAt: -1 })
       .limit(50)
       .lean();

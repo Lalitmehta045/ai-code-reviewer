@@ -2,9 +2,7 @@
 node_modules/
 
 # Environment files
-.env
 *.env
-**/.env
 **/*.env
 # Do not ignore example env files
 !.env.example
@@ -20,3 +18,4 @@ yarn-error.log*
 Thumbs.db
 .idea/
 .vscode/
+config.bat
