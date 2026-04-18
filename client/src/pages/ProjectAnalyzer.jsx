@@ -67,18 +67,72 @@ export default function ProjectAnalyzer() {
   };
 
   /**
-   * Non-blocking PDF download via browser-native print dialog.
+   * Non-blocking PDF via popup window.
    *
-   * Why: html-to-image + jsPDF renders the entire DOM to a canvas on the main
-   * thread → hard UI freeze for large reports. The browser's print engine runs
-   * in a separate process and never blocks React rendering.
+   * Opens a clean standalone HTML document in a popup, injects the report
+   * innerHTML + self-contained print styles, then calls print() on that window.
    *
-   * The print stylesheet (#print-report) hides all chrome and formats just the
-   * report content so the user gets a clean, paginated PDF from Save as PDF.
+   * Why popup, not window.print() directly:
+   *   @media print on the main page can't unhide a nested element when its
+   *   parent (#root) is hidden — the cascade blocks it. In a popup the body
+   *   contains ONLY the report HTML, so print() works with zero CSS hacks.
    */
   const downloadPDF = () => {
     if (!reportRef.current) return;
-    window.print();
+
+    const reportHTML = reportRef.current.innerHTML;
+    const popup = window.open("", "_blank", "width=900,height=700");
+    if (!popup) {
+      alert("Please allow popups for this site to download the PDF.");
+      return;
+    }
+
+    popup.document.write(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Project Interview Guide</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-size: 12pt; line-height: 1.7; color: #111;
+      background: #fff; padding: 20mm 18mm;
+    }
+    h1 { font-size: 22pt; color: #1e1e3f; margin: 0 0 12px; border-bottom: 2px solid #6d28d9; padding-bottom: 6px; }
+    h2 { font-size: 16pt; color: #2d2d6f; margin: 28px 0 10px; border-bottom: 1px solid #ccc; padding-bottom: 4px; page-break-before: always; }
+    h2:first-of-type { page-break-before: avoid; }
+    h3 { font-size: 13pt; color: #3b3b8f; margin: 18px 0 6px; }
+    p  { margin: 8px 0; }
+    ul, ol { margin: 8px 0 8px 22px; }
+    li { margin: 4px 0; }
+    strong { font-weight: 600; }
+    pre {
+      background: #f4f4f8; border: 1px solid #ddd; border-radius: 4px;
+      padding: 12px; font-size: 10pt; white-space: pre-wrap;
+      word-break: break-word; page-break-inside: avoid; margin: 10px 0;
+    }
+    code {
+      background: #f0eeff; color: #1e1e3f; border: 1px solid #ddd;
+      border-radius: 3px; padding: 1px 5px; font-size: 10pt;
+      font-family: 'Consolas', 'Courier New', monospace;
+    }
+    pre code { background: none; border: none; padding: 0; }
+    table { border-collapse: collapse; width: 100%; margin: 12px 0; page-break-inside: avoid; font-size: 10.5pt; }
+    th { background: #ede9fe; color: #1e1e3f; font-weight: 600; text-align: left; padding: 7px 10px; border: 1px solid #c4b5fd; }
+    td { padding: 6px 10px; border: 1px solid #ddd; color: #222; vertical-align: top; }
+    tr:nth-child(even) td { background: #fafafa; }
+    blockquote { border-left: 4px solid #7c3aed; padding: 8px 14px; margin: 10px 0; color: #333; background: #f5f3ff; }
+    hr { border: none; border-top: 1px solid #ccc; margin: 20px 0; }
+    @page { margin: 15mm; size: A4 portrait; }
+  </style>
+</head>
+<body>${reportHTML}</body>
+</html>`);
+
+    popup.document.close();
+    popup.onload = () => { popup.focus(); popup.print(); };
+    setTimeout(() => { try { popup.focus(); popup.print(); } catch {} }, 600);
   };
 
   const downloadMarkdown = () => {
