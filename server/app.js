@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const compression = require("compression");
 const mongoose = require("mongoose");
 const redis = require("./utils/redisClient");
 const http = require("http");
@@ -32,6 +33,17 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 app.disable("x-powered-by");
+// Gzip/Brotli compression — AI Markdown responses compress 60-80%
+// Skip SSE streams (they must not be buffered)
+app.use(compression({
+  level: 6,
+  threshold: 512,
+  filter: (req, res) => {
+    // Don't compress SSE streams — they must flush immediately
+    if (res.getHeader("Content-Type") === "text/event-stream") return false;
+    return compression.filter(req, res);
+  },
+}));
 app.use(express.json());
 app.use(passport.initialize());
 

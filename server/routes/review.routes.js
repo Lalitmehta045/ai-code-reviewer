@@ -1,15 +1,23 @@
 const express = require("express");
-const { generateReview, getUserHistory } = require("../controllers/review.controller");
+const {
+  generateReview,
+  generateReviewStream,
+  getUserHistory,
+} = require("../controllers/review.controller");
 const authMiddleware = require("../middleware/auth.middleware");
+
 const router = express.Router();
 
-// Apply auth middleware to all review routes
+// Auth applied to all review routes
 router.use(authMiddleware);
 
-// Route: GET /api/reviews
+// GET  /api/reviews         — paginated review history
 router.get("/", getUserHistory);
 
-// Route: POST /api/reviews
+// POST /api/reviews         — buffered (full response at once)
 router.post("/", generateReview);
+
+// POST /api/reviews/stream  — SSE streaming (first token in ~1s)
+router.post("/stream", generateReviewStream);
 
 module.exports = router;
