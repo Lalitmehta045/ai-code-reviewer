@@ -19,7 +19,7 @@ function toPositiveInt(value, fallback) {
 
 const ANALYZE_DAILY_LIMIT    = toPositiveInt(process.env.ANALYZE_DAILY_LIMIT,   3);
 const ANALYZE_CACHE_TTL_SEC  = toPositiveInt(process.env.ANALYZE_CACHE_TTL_SEC, 21600);
-const ANALYZE_PROMPT_VERSION = "v3";
+const ANALYZE_PROMPT_VERSION = "v4"; // bumped: richer project-specific interview Q&A
 const MAX_FILE_SIZE          = toPositiveInt(process.env.ANALYZE_MAX_FILE_SIZE,  40000);  // 40 KB per file
 const MAX_TOTAL_SIZE         = toPositiveInt(process.env.ANALYZE_MAX_TOTAL_SIZE, 200000); // 200 KB total (was 300KB)
 
@@ -163,12 +163,32 @@ OUTPUT — Markdown with ALL of these sections:
 4. Key Files & Modules — table: file, responsibility (10-15 rows)
 5. API Endpoints — table: method, endpoint, auth, description
 6. Code Quality — strengths & weaknesses, mini security table, performance notes
-7. Interview Q&A — 5 basic / 5 intermediate / 5 advanced with answers
+7. Project-Specific Interview Questions & Answers
+   Generate EXACTLY 15 interview questions WITH detailed answers.
+   Questions MUST be specific to THIS project — reference actual:
+   - File names (e.g. "In auth.controller.js, how does ...")
+   - Function names (e.g. "What does generateReview() do and why?")
+   - Design decisions found in the code (e.g. "Why is Redis used for caching here?")
+   - Technologies actually used (e.g. "How does JWT authentication work in this app?")
+   - Bugs or improvements visible in the actual source code
+   DO NOT write generic JavaScript/Python questions.
+   Format each question as:
+   **Q1. [Question referencing a real file/function/decision]**
+   > **Answer:** [Detailed, specific answer citing actual code]
+   Divide into:
+   ### Basic (Q1–Q5): setup, purpose, folder structure, main technologies
+   ### Intermediate (Q6–Q10): API flow, auth, database schema, error handling, caching
+   ### Advanced (Q11–Q15): scalability, security, performance, trade-offs, improvements
 8. Technical Deep-Dives — 5 concepts with implementation details from this code
 9. Suggested Improvements — table: priority, change, impact
 10. Quick Revision Cheat Sheet
 
-Rules: Only reference real files/functions. No invented APIs. Use tables.`,
+Rules:
+- Every question MUST reference a real file, function, variable, or design choice from the provided source code.
+- No generic theoretical questions.
+- Answers must be specific and cite actual code where relevant.
+- Use tables for sections 1-6.
+- Only reference real files/functions. No invented APIs.`,
   };
 }
 
