@@ -107,7 +107,7 @@ async function generateGeminiText({
 }) {
   // Enforce token budget to limit output size → faster response
   const mergedConfig = {
-    maxOutputTokens: parsePositiveInt(process.env.GEMINI_MAX_OUTPUT_TOKENS, 2048),
+    maxOutputTokens: parsePositiveInt(process.env.GEMINI_MAX_OUTPUT_TOKENS, 8192),
     // Disable thinking budget for flash models — removes extra latency
     ...(model.includes("flash") ? { thinkingConfig: { thinkingBudget: 0 } } : {}),
     ...config,
@@ -163,7 +163,7 @@ async function streamGeminiToSSE({
   onChunk,   // optional: called with each text chunk (for assembling full response)
 }) {
   const mergedConfig = {
-    maxOutputTokens: parsePositiveInt(process.env.GEMINI_MAX_OUTPUT_TOKENS, 2048),
+    maxOutputTokens: parsePositiveInt(process.env.GEMINI_MAX_OUTPUT_TOKENS, 8192),
     ...(model.includes("flash") ? { thinkingConfig: { thinkingBudget: 0 } } : {}),
     ...config,
   };

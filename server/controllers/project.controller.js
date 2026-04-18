@@ -19,9 +19,13 @@ function toPositiveInt(value, fallback) {
 
 const ANALYZE_DAILY_LIMIT    = toPositiveInt(process.env.ANALYZE_DAILY_LIMIT,   3);
 const ANALYZE_CACHE_TTL_SEC  = toPositiveInt(process.env.ANALYZE_CACHE_TTL_SEC, 21600);
-const ANALYZE_PROMPT_VERSION = "v4"; // bumped: richer project-specific interview Q&A
+const ANALYZE_PROMPT_VERSION = "v5"; // bumped: enforce strict Q&A output format
 const MAX_FILE_SIZE          = toPositiveInt(process.env.ANALYZE_MAX_FILE_SIZE,  40000);  // 40 KB per file
 const MAX_TOTAL_SIZE         = toPositiveInt(process.env.ANALYZE_MAX_TOTAL_SIZE, 200000); // 200 KB total (was 300KB)
+const PROJECT_ANALYSIS_MAX_OUTPUT_TOKENS = toPositiveInt(
+  process.env.PROJECT_ANALYSIS_MAX_OUTPUT_TOKENS,
+  12288
+);
 
 // ─── File-type sets (module-level: parsed once) ───────────────────────────────
 const CODE_EXTENSIONS = new Set([
@@ -172,13 +176,14 @@ OUTPUT — Markdown with ALL of these sections:
    - Technologies actually used (e.g. "How does JWT authentication work in this app?")
    - Bugs or improvements visible in the actual source code
    DO NOT write generic JavaScript/Python questions.
-   Format each question as:
+   Format each item exactly as:
    **Q1. [Question referencing a real file/function/decision]**
-   > **Answer:** [Detailed, specific answer citing actual code]
+   **Answer:** [Detailed, specific answer citing actual code]
+   (No blockquote, no bullets before Q/Answer, no skipping Answer line.)
    Divide into:
-   ### Basic (Q1–Q5): setup, purpose, folder structure, main technologies
-   ### Intermediate (Q6–Q10): API flow, auth, database schema, error handling, caching
-   ### Advanced (Q11–Q15): scalability, security, performance, trade-offs, improvements
+   ### Basic (Q1-Q5): setup, purpose, folder structure, main technologies
+   ### Intermediate (Q6-Q10): API flow, auth, database schema, error handling, caching
+   ### Advanced (Q11-Q15): scalability, security, performance, trade-offs, improvements
 8. Technical Deep-Dives — 5 concepts with implementation details from this code
 9. Suggested Improvements — table: priority, change, impact
 10. Quick Revision Cheat Sheet
@@ -187,6 +192,8 @@ Rules:
 - Every question MUST reference a real file, function, variable, or design choice from the provided source code.
 - No generic theoretical questions.
 - Answers must be specific and cite actual code where relevant.
+- Section 7 must contain exactly 15 "**Answer:**" lines (one answer per question).
+- If output budget is tight, shorten sections 1-6 first; never skip interview answers.
 - Use tables for sections 1-6.
 - Only reference real files/functions. No invented APIs.`,
   };
@@ -262,7 +269,10 @@ const analyzeProject = async (req, res) => {
         const aiResponse = await generateGeminiText({
           model: "gemini-2.5-flash-lite",
           contents: prompt,
-          config: { systemInstruction: ANALYSIS_SYSTEM_INSTRUCTION },
+          config: {
+            systemInstruction: ANALYSIS_SYSTEM_INSTRUCTION,
+            maxOutputTokens: PROJECT_ANALYSIS_MAX_OUTPUT_TOKENS,
+          },
         });
         return { data: aiResponse, fileCount: files.length, fileTree };
       },
@@ -363,7 +373,10 @@ const analyzeProjectStream = async (req, res) => {
       res,
       model: "gemini-2.5-flash-lite",
       contents: prompt,
-      config: { systemInstruction: ANALYSIS_SYSTEM_INSTRUCTION },
+      config: {
+        systemInstruction: ANALYSIS_SYSTEM_INSTRUCTION,
+        maxOutputTokens: PROJECT_ANALYSIS_MAX_OUTPUT_TOKENS,
+      },
       onChunk: (chunk) => { fullText += chunk; },
     });
 
