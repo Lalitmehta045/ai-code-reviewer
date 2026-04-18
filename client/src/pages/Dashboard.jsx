@@ -5,8 +5,8 @@ import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/atom-one-dark.css";
 import { Code2, Sparkles, Loader2, Bot, Copy, Check, ChevronDown, Download, Wand2 } from "lucide-react";
 import Editor from "@monaco-editor/react";
-import * as htmlToImage from "html-to-image";
-import { jsPDF } from "jspdf";
+// html-to-image and jsPDF removed — they block the main thread for large reports.
+// PDF export now uses browser-native print (runs in browser's own process).
 
 export default function Dashboard() {
   const [code, setCode] = useState("// Paste your code here...\n\n");
@@ -16,7 +16,7 @@ export default function Dashboard() {
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedResponse, setCopiedResponse] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [isGeneratingPDF] = useState(false); // kept for button compatibility
   const reportRef = useRef(null);
 
   const loadDemoCode = () => {
@@ -50,50 +50,17 @@ console.log(calculateTotal(shoppingCart));`);
     setTimeout(() => setCopiedResponse(false), 2000);
   };
 
-  const downloadPDF = async () => {
+  /**
+   * Non-blocking PDF download via browser-native print dialog.
+   *
+   * The old approach (html-to-image → canvas → jsPDF) ran entirely on the
+   * main thread and froze the UI for 1-5 seconds on large code reviews.
+   * window.print() hands off to the browser's print subsystem which runs
+   * in its own process — zero main-thread blocking.
+   */
+  const downloadPDF = () => {
     if (!reportRef.current) return;
-    try {
-      setIsGeneratingPDF(true);
-      const element = reportRef.current;
-      
-      const originalBg = element.style.backgroundColor;
-      element.style.backgroundColor = '#0B1120';
-      element.style.padding = '20px';
-
-      const canvas = await htmlToImage.toCanvas(element, {
-        backgroundColor: '#0B1120',
-        pixelRatio: 2,
-      });
-
-      element.style.backgroundColor = originalBg;
-      element.style.padding = '';
-
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      
-      let heightLeft = pdfHeight;
-      let position = 0;
-
-      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
-      heightLeft -= pageHeight;
-
-      while (heightLeft >= 0) {
-        position = heightLeft - pdfHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
-        heightLeft -= pageHeight;
-      }
-
-      pdf.save('AI-Code-Review.pdf');
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      setErrorMsg("Failed to generate PDF. Please try again.");
-    } finally {
-      setIsGeneratingPDF(false);
-    }
+    window.print();
   };
 
   const handleEditorBeforeMount = (monaco) => {
@@ -311,7 +278,7 @@ console.log(calculateTotal(shoppingCart));`);
               </div>
             </div>
           ) : result ? (
-            <div ref={reportRef} className="animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out mt-4 text-slate-300">
+            <div id="print-report" ref={reportRef} className="animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out mt-4 text-slate-300">
               <Markdown
                 rehypePlugins={[rehypeHighlight]}
                 components={{

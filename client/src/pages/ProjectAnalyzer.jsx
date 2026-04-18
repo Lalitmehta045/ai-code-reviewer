@@ -8,8 +8,8 @@ import {
   Upload, Sparkles, Loader2, Bot, Copy, Check, Download,
   FileArchive, X, FolderTree, FileCode2, AlertCircle
 } from "lucide-react";
-import * as htmlToImage from "html-to-image";
-import { jsPDF } from "jspdf";
+// html-to-image and jsPDF removed — they block the main thread for large reports.
+// Downloads now use Markdown blob (instant) or browser print-to-PDF (off main thread).
 
 export default function ProjectAnalyzer() {
   const [file, setFile] = useState(null);
@@ -17,7 +17,6 @@ export default function ProjectAnalyzer() {
   const [loading, setLoading] = useState(false);
   const [copiedResponse, setCopiedResponse] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [fileTree, setFileTree] = useState("");
   const [fileCount, setFileCount] = useState(0);
   const [dragActive, setDragActive] = useState(false);
@@ -67,50 +66,19 @@ export default function ProjectAnalyzer() {
     setTimeout(() => setCopiedResponse(false), 2000);
   };
 
-  const downloadPDF = async () => {
+  /**
+   * Non-blocking PDF download via browser-native print dialog.
+   *
+   * Why: html-to-image + jsPDF renders the entire DOM to a canvas on the main
+   * thread → hard UI freeze for large reports. The browser's print engine runs
+   * in a separate process and never blocks React rendering.
+   *
+   * The print stylesheet (#print-report) hides all chrome and formats just the
+   * report content so the user gets a clean, paginated PDF from Save as PDF.
+   */
+  const downloadPDF = () => {
     if (!reportRef.current) return;
-    try {
-      setIsGeneratingPDF(true);
-      const element = reportRef.current;
-
-      const originalBg = element.style.backgroundColor;
-      element.style.backgroundColor = "#0B1120";
-      element.style.padding = "20px";
-
-      const canvas = await htmlToImage.toCanvas(element, {
-        backgroundColor: "#0B1120",
-        pixelRatio: 2,
-      });
-
-      element.style.backgroundColor = originalBg;
-      element.style.padding = "";
-
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      const pageHeight = pdf.internal.pageSize.getHeight();
-
-      let heightLeft = pdfHeight;
-      let position = 0;
-
-      pdf.addImage(imgData, "PNG", 0, position, pdfWidth, pdfHeight);
-      heightLeft -= pageHeight;
-
-      while (heightLeft >= 0) {
-        position = heightLeft - pdfHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, position, pdfWidth, pdfHeight);
-        heightLeft -= pageHeight;
-      }
-
-      pdf.save("Project-Interview-Guide.pdf");
-    } catch (error) {
-      console.error("Error generating PDF:", error);
-      setErrorMsg("Failed to generate PDF. Please try again.");
-    } finally {
-      setIsGeneratingPDF(false);
-    }
+    window.print();
   };
 
   const downloadMarkdown = () => {
@@ -323,18 +291,11 @@ export default function ProjectAnalyzer() {
                   </button>
                   <button
                     onClick={downloadPDF}
-                    disabled={isGeneratingPDF}
                     title="Download PDF"
-                    className="text-xs text-slate-400 hover:text-white transition-colors flex items-center gap-1.5 bg-slate-800/50 hover:bg-slate-700/50 px-2 sm:px-2.5 py-1.5 rounded-md border border-slate-700/50 disabled:opacity-50"
+                    className="text-xs text-slate-400 hover:text-white transition-colors flex items-center gap-1.5 bg-slate-800/50 hover:bg-slate-700/50 px-2 sm:px-2.5 py-1.5 rounded-md border border-slate-700/50"
                   >
-                    {isGeneratingPDF ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin text-violet-400" />
-                    ) : (
-                      <Download className="w-3.5 h-3.5" />
-                    )}
-                    <span className="hidden sm:inline">
-                      {isGeneratingPDF ? "Generating..." : "PDF"}
-                    </span>
+                    <Download className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">PDF</span>
                   </button>
                   <button
                     onClick={copyResponse}
@@ -380,6 +341,7 @@ export default function ProjectAnalyzer() {
               </div>
             ) : (
               <div
+                id="print-report"
                 ref={reportRef}
                 className="animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out mt-2 text-slate-300"
               >

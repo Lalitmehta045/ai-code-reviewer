@@ -26,3 +26,80 @@
   0% { transform: translateX(-100%); }
   100% { transform: translateX(100%); }
 }
+
+/* ─── Print / PDF stylesheet ──────────────────────────────────────────────────
+   Used when the user clicks "Download PDF" (window.print()).
+   Hides all app chrome and renders only the report content in a clean,
+   printer-friendly format. The browser handles pagination — no JS required.
+───────────────────────────────────────────────────────────────────────────── */
+@media print {
+  /* Hide everything by default */
+  body > * { display: none !important; }
+
+  /* Show only the element marked as printable */
+  #print-report,
+  #print-report * { display: revert !important; }
+
+  /* Reset colours for printer */
+  #print-report {
+    display: block !important;
+    position: fixed !important;
+    inset: 0 !important;
+    background: white !important;
+    color: #111 !important;
+    font-family: 'Inter', system-ui, sans-serif !important;
+    font-size: 12pt !important;
+    line-height: 1.6 !important;
+    padding: 20mm !important;
+    z-index: 9999 !important;
+    overflow: visible !important;
+    max-height: none !important;
+  }
+
+  /* Print-friendly colours for code blocks */
+  #print-report pre,
+  #print-report code {
+    background: #f4f4f8 !important;
+    color: #1e1e3f !important;
+    border: 1px solid #ddd !important;
+    border-radius: 4px !important;
+    font-size: 10pt !important;
+    white-space: pre-wrap !important;
+    word-break: break-word !important;
+  }
+
+  /* Tables */
+  #print-report table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+    page-break-inside: avoid !important;
+  }
+  #print-report th,
+  #print-report td {
+    border: 1px solid #ccc !important;
+    padding: 6px 10px !important;
+    color: #111 !important;
+    background: transparent !important;
+  }
+  #print-report th {
+    background: #f0f0f8 !important;
+    font-weight: 600 !important;
+  }
+
+  /* Headings */
+  #print-report h1 { font-size: 20pt !important; color: #1e1e3f !important; }
+  #print-report h2 { font-size: 15pt !important; color: #2d2d6f !important; page-break-before: always !important; }
+  #print-report h3 { font-size: 12pt !important; color: #3b3b8f !important; }
+
+  /* Page breaks */
+  #print-report h2:first-child { page-break-before: avoid !important; }
+  #print-report pre { page-break-inside: avoid !important; }
+
+  /* Hide scrollbars */
+  ::-webkit-scrollbar { display: none !important; }
+
+  @page {
+    margin: 15mm;
+    size: A4 portrait;
+  }
+}
